@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GadgetHub Pro | All Features Integrated</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .glass { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(12px); }
+        .view-section { display: none; }
+        .active-view { display: block; animation: slideUp 0.3s ease-out; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        body { padding-bottom: 100px; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 no-scrollbar">
+
+    <div id="view-login" class="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900 px-4">
+        <div class="bg-white p-10 rounded-[3rem] shadow-2xl w-full max-w-md text-center">
+            <div class="bg-blue-600 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-xl">
+                <i data-lucide="shield-check" class="text-white w-8 h-8"></i>
+            </div>
+            <h2 class="text-3xl font-black mb-2">Student Login</h2>
+            <p class="text-slate-400 text-sm mb-8">1ms24cs195@gmail.com format required</p>
+            <input id="login-email" type="email" placeholder="Student Email" class="w-full px-5 py-4 rounded-2xl border mb-4 outline-none focus:ring-2 focus:ring-blue-500">
+            <input id="login-pass" type="password" placeholder="Password" class="w-full px-5 py-4 rounded-2xl border mb-6 outline-none">
+            <button onclick="handleLogin()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black shadow-xl hover:bg-blue-700 transition">Enter Marketplace</button>
+        </div>
+    </div>
+
+    <div id="view-main" class="hidden">
+        <nav class="glass sticky top-0 z-50 px-6 py-4 flex justify-between items-center border-b border-slate-100">
+            <div class="flex items-center gap-2" onclick="switchView('home')">
+                <i data-lucide="cpu" class="text-blue-600 w-6 h-6"></i>
+                <h1 class="text-xl font-black italic tracking-tighter">GADGET HUB</h1>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="toggleModal('add-modal')" class="bg-slate-900 text-white p-2.5 rounded-xl hover:bg-blue-600 transition">
+                    <i data-lucide="plus" class="w-5 h-5"></i>
+                </button>
+                <img id="nav-avatar" src="" class="w-10 h-10 rounded-full border-2 border-white shadow-sm cursor-pointer" onclick="switchView('profile')">
+            </div>
+        </nav>
+
+        <main class="p-6 max-w-4xl mx-auto">
+            <section id="section-home" class="view-section active-view">
+                <div class="mb-8">
+                    <h2 class="text-4xl font-black">Featured Gear</h2>
+                    <p class="text-slate-400 font-medium">Click image for owner details & booking</p>
+                </div>
+                <div id="gadget-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+            </section>
+
+            <section id="section-cart" class="view-section">
+                <h2 class="text-3xl font-black mb-6">Shopping Cart</h2>
+                <div id="cart-list" class="space-y-4 mb-8"></div>
+                <div id="cart-summary" class="hidden bg-white p-8 rounded-[2.5rem] border shadow-lg">
+                    <div class="flex justify-between items-end mb-6">
+                        <div>
+                            <p class="text-xs font-bold text-slate-400 uppercase">Total + Deposits</p>
+                            <p id="cart-total" class="text-4xl font-black text-blue-600">₹0</p>
+                        </div>
+                        <p class="text-[10px] text-slate-400 max-w-[120px] text-right italic">Deposits are 100% refundable after return.</p>
+                    </div>
+                    <button onclick="confirmBooking()" class="w-full bg-slate-900 text-white py-5 rounded-2xl font-black text-lg">Confirm & Set Reminders</button>
+                </div>
+            </section>
+
+            <section id="section-reminder" class="view-section">
+                <h2 class="text-3xl font-black mb-2">Return Tracker</h2>
+                <p class="text-slate-400 mb-8">Automatic alerts based on your pick-up date</p>
+                <div id="reminder-list" class="space-y-4"></div>
+            </section>
+
+            <section id="section-refund" class="view-section">
+                <h2 class="text-3xl font-black mb-6">Security Refunds</h2>
+                <div class="bg-blue-600 p-8 rounded-[2.5rem] text-white shadow-xl shadow-blue-100 mb-6">
+                    <p class="text-xs font-bold opacity-70 uppercase tracking-widest">In-Process Balance</p>
+                    <p class="text-5xl font-black">₹1,500</p>
+                </div>
+                <div class="space-y-3" id="refund-list">
+                    <div class="bg-white p-4 rounded-2xl flex justify-between items-center border">
+                        <span class="text-sm font-bold">DSLR Camera Deposit</span>
+                        <span class="text-blue-600 font-black text-xs bg-blue-50 px-3 py-1 rounded-full">Pending Return</span>
+                    </div>
+                </div>
+            </section>
+
+            <section id="section-profile" class="view-section">
+                <h2 class="text-3xl font-black mb-8 text-center">Settings</h2>
+                <div class="bg-white p-10 rounded-[3rem] shadow-sm border text-center">
+                    <img id="prof-img-large" src="" class="w-28 h-28 rounded-full mx-auto mb-6 border-4 border-blue-50">
+                    <div class="space-y-4">
+                        <input id="edit-name" type="text" class="w-full p-4 bg-slate-50 rounded-2xl font-black text-center border-none">
+                        <input id="edit-pic" type="text" placeholder="Avatar URL" class="w-full p-4 bg-slate-50 rounded-2xl text-sm border-none">
+                        <button onclick="updateProfile()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold shadow-lg">Save Profile</button>
+                        <button onclick="handleLogout()" class="w-full py-4 text-red-500 font-bold">Log Out</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <div class="fixed bottom-0 left-0 right-0 glass border-t border-slate-100 px-8 py-4 flex justify-between items-center z-[100]">
+            <button onclick="switchView('home')" id="nav-home" class="nav-btn text-blue-600"><i data-lucide="layout-grid"></i></button>
+            <button onclick="switchView('cart')" id="nav-cart" class="nav-btn text-slate-300"><i data-lucide="shopping-bag"></i></button>
+            <button onclick="switchView('reminder')" id="nav-reminder" class="nav-btn text-slate-300"><i data-lucide="bell-ring"></i></button>
+            <button onclick="switchView('refund')" id="nav-refund" class="nav-btn text-slate-300"><i data-lucide="wallet"></i></button>
+            <button onclick="switchView('profile')" id="nav-profile" class="nav-btn text-slate-300"><i data-lucide="user"></i></button>
+        </div>
+    </div>
+
+    <div id="detail-modal" class="hidden fixed inset-0 z-[250] bg-black/70 backdrop-blur-md flex items-end sm:items-center justify-center">
+        <div class="bg-white w-full max-w-lg rounded-t-[3rem] sm:rounded-[3rem] p-8 max-h-[90vh] overflow-y-auto relative">
+            <button onclick="toggleModal('detail-modal')" class="absolute top-6 right-6 bg-slate-100 p-2 rounded-full"><i data-lucide="x" class="w-4 h-4"></i></button>
+            <div id="detail-content"></div>
+        </div>
+    </div>
+
+    <div id="add-modal" class="hidden fixed inset-0 z-[250] bg-black/60 backdrop-blur-sm flex items-center justify-center p-6">
+        <div class="bg-white w-full max-w-md rounded-[3rem] p-10 shadow-2xl">
+            <h2 class="text-2xl font-black mb-6">Lend Your Gear</h2>
+            <div class="space-y-4">
+                <input id="new-name" type="text" placeholder="Gadget Name" class="w-full p-4 bg-slate-50 rounded-2xl outline-none">
+                <div class="grid grid-cols-2 gap-4">
+                    <input id="new-rate" type="number" placeholder="Rent (₹)" class="p-4 bg-slate-50 rounded-2xl outline-none">
+                    <input id="new-deposit" type="number" placeholder="Deposit (₹)" class="p-4 bg-blue-50 text-blue-600 font-bold rounded-2xl outline-none">
+                </div>
+                <input id="new-img" type="text" placeholder="Image URL" class="w-full p-4 bg-slate-50 rounded-2xl outline-none">
+                <textarea id="new-desc" placeholder="Product details..." class="w-full p-4 bg-slate-50 rounded-2xl h-24 outline-none"></textarea>
+            </div>
+            <button onclick="submitNewGadget()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold mt-8">Post Listing</button>
+            <button onclick="toggleModal('add-modal')" class="w-full text-slate-400 font-bold py-2 mt-2">Cancel</button>
+        </div>
+    </div>
+
+    <script>
+        const API = 'http://localhost:3000/api';
+        let gadgets = [], cart = [], activeUser = null, activeGadget = null;
+
+        // --- SESSION HANDLING ---
+        function handleLogin() {
+            const email = document.getElementById('login-email').value;
+            if(!/^1ms\d{2}[a-z]{2}\d{3}@gmail\.com$/i.test(email)) return alert("Use Student Format!");
+            localStorage.setItem('hub_session', email);
+            init(email);
+        }
+
+        function init(email) {
+            activeUser = email;
+            document.getElementById('view-login').classList.add('hidden');
+            document.getElementById('view-main').classList.remove('hidden');
+            
+            const name = localStorage.getItem(`name_${email}`) || "Student";
+            const pic = localStorage.getItem(`pic_${email}`) || `https://ui-avatars.com/api/?name=${name}&background=2563eb&color=fff`;
+            
+            document.getElementById('nav-avatar').src = pic;
+            document.getElementById('prof-img-large').src = pic;
+            document.getElementById('edit-name').value = name;
+            
+            fetchGadgets();
+            renderReminders();
+        }
+    
+        // --- UPDATED GADGET LOGIC WITH REALISTIC DEPOSITS ---
+async function fetchGadgets() {
+    const res = await fetch(`${API}/gadgets`);
+    const rawData = await res.json();
+    
+    // Logic: If the database doesn't have a specific deposit, 
+    // we calculate a "Best Amount" (approx 40% of estimated value 
+    // or a 5x multiplier of the daily rate for high-end gear).
+    gadgets = rawData.map(g => {
+        const calculatedDeposit = g.deposit_amount || (parseFloat(g.daily_rate) * 8); 
+        return { ...g, deposit_amount: Math.round(calculatedDeposit / 100) * 100 };
+    });
+
+    document.getElementById('gadget-grid').innerHTML = gadgets.map(g => `
+        <div class="bg-white p-4 rounded-[2.5rem] shadow-sm border border-slate-100 flex flex-col group hover:shadow-xl transition-all duration-300">
+            <div class="relative overflow-hidden rounded-[2rem]">
+                <img src="${g.image_url}" onclick="openProduct(${g.gadget_id})" 
+                     class="w-full h-48 object-cover cursor-pointer group-hover:scale-105 transition-transform duration-500">
+                <div class="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full shadow-sm">
+                    <p class="text-[10px] font-black text-blue-600">BEST VALUE</p>
+                </div>
+            </div>
+            <div class="p-4 flex justify-between items-center">
+                <div>
+                    <h4 class="font-black text-lg truncate w-32">${g.name}</h4>
+                    <p class="text-blue-600 font-black">₹${g.daily_rate}<span class="text-[10px] text-slate-400 font-normal"> /day</span></p>
+                </div>
+                <div class="text-right">
+                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">Security Deposit</p>
+                    <p class="font-black text-slate-900 text-lg">₹${g.deposit_amount}</p>
+                </div>
+            </div>
+        </div>
+    `).join('');
+    lucide.createIcons();
+}
+
+// --- UPDATED ADD GADGET LOGIC ---
+async function submitNewGadget() {
+    const rate = parseFloat(document.getElementById('new-rate').value);
+    
+    // Auto-calculating a "Best Amount" deposit for new listings:
+    // Usually 5x the daily rate for standard items, or user-defined.
+    const autoDeposit = document.getElementById('new-deposit').value || (rate * 5);
+
+    const payload = {
+        name: document.getElementById('new-name').value,
+        rate: rate,
+        deposit: autoDeposit,
+        image: document.getElementById('new-img').value,
+        desc: document.getElementById('new-desc').value,
+        owner_name: localStorage.getItem(`name_${activeUser}`) || "Student",
+        owner_contact: activeUser
+    };
+    
+    await fetch(`${API}/add-gadget`, { 
+        method: 'POST', 
+        headers: {'Content-Type': 'application/json'}, 
+        body: JSON.stringify(payload)
+    });
+    
+    toggleModal('add-modal');
+    fetchGadgets();
+}
+        function openProduct(id) {
+            activeGadget = gadgets.find(g => g.gadget_id === id);
+            document.getElementById('detail-content').innerHTML = `
+                <img src="${activeGadget.image_url}" class="w-full h-56 rounded-[2.5rem] object-cover mb-6">
+                <h3 class="text-3xl font-black mb-2">${activeGadget.name}</h3>
+                <div class="flex gap-4 mb-6">
+                    <span class="bg-blue-50 text-blue-600 px-4 py-1 rounded-full text-xs font-bold">Rent: ₹${activeGadget.daily_rate}</span>
+                    <span class="bg-slate-100 text-slate-600 px-4 py-1 rounded-full text-xs font-bold">Deposit: ₹${activeGadget.deposit_amount}</span>
+                </div>
+                
+                <div class="bg-slate-50 p-5 rounded-[2rem] flex items-center justify-between mb-6">
+                    <div class="flex items-center gap-3">
+                        <img src="https://ui-avatars.com/api/?name=${activeGadget.owner_name}" class="w-10 h-10 rounded-full">
+                        <div>
+                            <p class="text-[10px] font-bold text-slate-400">OWNER</p>
+                            <p class="font-black text-sm">${activeGadget.owner_name}</p>
+                        </div>
+                    </div>
+                    <a href="mailto:${activeGadget.owner_contact}" class="bg-white p-3 rounded-xl text-blue-600 shadow-sm"><i data-lucide="message-square"></i></a>
+                </div>
+
+                <div class="mb-8">
+                    <label class="text-xs font-bold text-slate-400 uppercase mb-2 block ml-2">Select Pick-up Date</label>
+                    <input type="date" id="rental-date" class="w-full p-4 bg-slate-100 rounded-2xl font-bold outline-none border-none">
+                </div>
+
+                <button onclick="addToCart()" class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black shadow-xl shadow-blue-100">Add to Cart</button>
+            `;
+            toggleModal('detail-modal');
+            lucide.createIcons();
+        }
+
+        // --- CART & BOOKING LOGIC ---
+        function addToCart() {
+            const date = document.getElementById('rental-date').value;
+            if(!date) return alert("Select a date!");
+            cart.push({ ...activeGadget, pickup_date: date });
+            toggleModal('detail-modal');
+            renderCart();
+            switchView('cart');
+        }
+
+        function renderCart() {
+            const list = document.getElementById('cart-list');
+            if(cart.length === 0) {
+                list.innerHTML = `<p class="text-center text-slate-400 py-12 italic">Cart is empty</p>`;
+                document.getElementById('cart-summary').classList.add('hidden');
+                return;
+            }
+            document.getElementById('cart-summary').classList.remove('hidden');
+            let total = 0;
+            list.innerHTML = cart.map((item, index) => {
+                total += (parseFloat(item.daily_rate) + parseFloat(item.deposit_amount));
+                return `
+                    <div class="bg-white p-4 rounded-[2rem] flex gap-4 border border-slate-100 shadow-sm">
+                        <img src="${item.image_url}" class="w-16 h-16 rounded-xl object-cover">
+                        <div class="flex-1">
+                            <h4 class="font-bold text-sm">${item.name}</h4>
+                            <p class="text-[10px] text-blue-600 font-bold uppercase">Pick-up: ${item.pickup_date}</p>
+                        </div>
+                        <button onclick="cart.splice(${index},1); renderCart();" class="text-red-400"><i data-lucide="trash-2"></i></button>
+                    </div>
+                `;
+            }).join('');
+            document.getElementById('cart-total').innerText = `₹${total}`;
+            lucide.createIcons();
+        }
+
+        function confirmBooking() {
+            const newReminders = cart.map(item => {
+                const returnDate = new Date(item.pickup_date);
+                returnDate.setDate(returnDate.getDate() + 3); // 3-day rental limit
+                return { name: item.name, deadline: returnDate.toDateString(), id: Date.now() };
+            });
+            const existing = JSON.parse(localStorage.getItem(`reminders_${activeUser}`)) || [];
+            localStorage.setItem(`reminders_${activeUser}`, JSON.stringify([...existing, ...newReminders]));
+            cart = [];
+            renderCart();
+            renderReminders();
+            switchView('reminder');
+            alert("Booking Successful! Deadline set for 3 days after pick-up.");
+        }
+
+        function renderReminders() {
+            const data = JSON.parse(localStorage.getItem(`reminders_${activeUser}`)) || [];
+            const list = document.getElementById('reminder-list');
+            list.innerHTML = data.length ? data.map(r => `
+                <div class="bg-white border p-6 rounded-[2rem] flex justify-between items-center">
+                    <div>
+                        <p class="font-black text-slate-800">${r.name}</p>
+                        <p class="text-xs text-orange-600 font-bold tracking-tight">Return by: ${r.deadline}</p>
+                    </div>
+                    <div class="bg-orange-100 text-orange-600 p-3 rounded-2xl"><i data-lucide="bell"></i></div>
+                </div>
+            `).join('') : `<p class="text-center py-10 text-slate-300 italic">No active returns</p>`;
+            lucide.createIcons();
+        }
+
+        // --- NAVIGATION & PROFILE ---
+        function switchView(view) {
+            document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active-view'));
+            document.getElementById(`section-${view}`).classList.add('active-view');
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.replace('text-blue-600', 'text-slate-300'));
+            document.getElementById(`nav-${view}`).classList.replace('text-slate-300', 'text-blue-600');
+            lucide.createIcons();
+        }
+
+        function updateProfile() {
+            const name = document.getElementById('edit-name').value;
+            const pic = document.getElementById('edit-pic').value || `https://ui-avatars.com/api/?name=${name}`;
+            localStorage.setItem(`name_${activeUser}`, name);
+            localStorage.setItem(`pic_${activeUser}`, pic);
+            document.getElementById('nav-avatar').src = pic;
+            document.getElementById('prof-img-large').src = pic;
+            alert("Profile Synced!");
+        }
+
+        function toggleModal(id) { document.getElementById(id).classList.toggle('hidden'); }
+        function handleLogout() { localStorage.removeItem('hub_session'); location.reload(); }
+
+        window.onload = () => {
+            const session = localStorage.getItem('hub_session');
+            if(session) init(session);
+            lucide.createIcons();
+        };
+    </script>
+</body>
+</html>
