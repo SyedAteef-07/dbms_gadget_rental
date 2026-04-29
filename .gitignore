@@ -1,0 +1,17 @@
+# Security: Never upload your passwords/API keys
+.env
+
+# Dependencies: This folder is huge; teammates should run 'npm install' instead
+node_modules/
+
+# OS metadata: Junk files created by Windows/Mac
+.DS_Store
+Thumbs.db
+
+# Logs: Error reports and debug files
+npm-debug.log*
+access.log
+error.log
+
+# Database backups (if you have them locally)
+*.sql.gz
