@@ -1,0 +1,84 @@
+-- Create the database
+CREATE DATABASE gadget_rental;
+USE gadget_rental;
+
+-- Users table
+CREATE TABLE Users (
+    user_id INT PRIMARY KEY AUTO_INCREMENT,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    name VARCHAR(100),
+    password_hash VARCHAR(255),
+    contact_info VARCHAR(100)
+);
+
+-- Gadgets table
+CREATE TABLE Gadgets (
+    gadget_id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(100) NOT NULL,
+    category VARCHAR(50),
+    daily_rate DECIMAL(10,2),
+    deposit_amount DECIMAL(10,2) DEFAULT 0,
+    status ENUM('Available', 'Rented') DEFAULT 'Available',
+    image_url LONGTEXT,
+    description LONGTEXT,
+    owner_name VARCHAR(100),
+    owner_email VARCHAR(100),
+    owner_phone VARCHAR(100),
+    owner_contact VARCHAR(100),
+    delivery_location VARCHAR(100)
+);
+
+-- Orders table
+CREATE TABLE Orders (
+    order_id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT,
+    gadget_id INT,
+    rental_days INT,
+    total_amount DECIMAL(10,2),
+    status ENUM('Pending','Confirmed','Returned') DEFAULT 'Pending',
+    FOREIGN KEY (user_id) REFERENCES Users(user_id),
+    FOREIGN KEY (gadget_id) REFERENCES Gadgets(gadget_id)
+);
+
+-- Payments table
+CREATE TABLE Payments (
+    payment_id INT PRIMARY KEY AUTO_INCREMENT,
+    order_id INT,
+    amount DECIMAL(10,2),
+    status ENUM('Pending','Paid') DEFAULT 'Pending',
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (order_id) REFERENCES Orders(order_id)
+);
+
+-- Chat messages table
+CREATE TABLE chat_messages (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    gadget_id INT,
+    sender_email VARCHAR(100),
+    owner_email VARCHAR(100),
+    message_text TEXT,
+    is_from_owner BOOLEAN,
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (gadget_id) REFERENCES Gadgets(gadget_id)
+);
+
+-- Reviews table
+CREATE TABLE Reviews (
+    review_id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT,
+    gadget_id INT,
+    rating INT CHECK (rating BETWEEN 1 AND 5),
+    comment TEXT,
+    FOREIGN KEY (user_id) REFERENCES Users(user_id),
+    FOREIGN KEY (gadget_id) REFERENCES Gadgets(gadget_id)
+);
+
+-- Sample data
+INSERT INTO Gadgets (name, category, daily_rate, deposit_amount, image_url, description, owner_name, owner_email, owner_phone, owner_contact, delivery_location)
+VALUES 
+('Canon EOS DSLR', 'Cameras', 250.00, 1500.00, 'https://images.unsplash.com/photo-1519183071298-a2962be54a10?auto=format&fit=crop&w=800&q=80', 'Professional DSLR camera', 'Rahul', 'rahul@example.com', '9876543210', '9876543210', 'Campus Hostel'),
+('Arduino Uno Kit', 'Electronics', 50.00, 300.00, 'https://images.unsplash.com/photo-1518779578993-ec3579fee39f?auto=format&fit=crop&w=800&q=80', 'Starter kit for electronics projects', 'Amit', 'amit@example.com', '9123456780', '9123456780', 'Library'),
+('Scientific Calculator', 'Electronics', 35.00, 300.00, 'https://images.unsplash.com/photo-1512446733611-9099a758e1d7?auto=format&fit=crop&w=800&q=80', 'Sharp scientific calculator ideal for college math and engineering exams.', 'Sneha', 'sneha@example.com', '9900112233', '9900112233', 'Engineering Block'),
+('Noise Cancelling Headphones', 'Audio', 80.00, 500.00, 'https://images.unsplash.com/photo-1512499617640-c2f99912a8b3?auto=format&fit=crop&w=800&q=80', 'Comfortable headphones to focus in libraries and study halls.', 'Priya', 'priya@example.com', '9870012345', '9870012345', 'Student Union'),
+('Portable Projector', 'AV', 120.00, 800.00, 'https://images.unsplash.com/photo-1534081333815-ae5019106622?auto=format&fit=crop&w=800&q=80', 'Compact projector for group study sessions and presentations.', 'Arjun', 'arjun@example.com', '9812345678', '9812345678', 'IT Lab'),
+('Laptop Stand', 'Accessories', 25.00, 200.00, 'https://images.unsplash.com/photo-1517059224940-d4af9eec41e5?auto=format&fit=crop&w=800&q=80', 'Adjustable laptop stand for ergonomic desk setups.', 'Neha', 'neha@example.com', '9123001234', '9123001234', 'Campus Cafe');
