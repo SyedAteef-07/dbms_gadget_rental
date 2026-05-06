@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const express = require('express');
 const mysql = require('mysql2');
 const cors = require('cors');
@@ -9,13 +11,14 @@ const port = 3000;
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(express.static('public'));
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // Database Connection
 const db = mysql.createConnection({
     host: "localhost",
     user: "root",
-    password: "SyedAteef@0786",
+    password: process.env.DB_PASSWORD,
     database: "gadget_rental"
 });
 
