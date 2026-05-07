@@ -11,21 +11,35 @@ app.use(cors());
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Database Connection
-const db = mysql.createConnection({
+// Database Connection Pool - Optimized for Benchmarking
+const db = mysql.createPool({
+    connectionLimit: 10,
     host: "localhost",
     user: "root",
     password: "SyedAteef@0786",
-    database: "gadget_rental"
+    database: "gadget_rental",
+    waitForConnections: true,
+    queueLimit: 0,
+    enableKeepAlive: true
 });
 
-db.connect((err) => {
+db.getConnection((err, connection) => {
     if (err) {
-        console.error("Database connection failed: " + err.stack);
+        if (err.code === 'PROTOCOL_CONNECTION_LOST') {
+            console.error('Database connection was closed.');
+        }
+        if (err.code === 'ER_CON_COUNT_ERROR') {
+            console.error('Database has too many connections.');
+        }
+        if (err.code === 'ER_AUTHENTICATION_PLUGIN_ERROR') {
+            console.error('Database authentication failed.');
+        }
         return;
     }
-    console.log("Connected to MySQL Database.");
+    if (connection) connection.release();
+    console.log("✅ MySQL Connection Pool Established (10 connections available).");
 
+    // Initialize database schema
     const createGadgetsTable = `CREATE TABLE IF NOT EXISTS Gadgets (
         gadget_id INT AUTO_INCREMENT PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
@@ -39,45 +53,90 @@ db.connect((err) => {
         owner_phone VARCHAR(100),
         owner_contact VARCHAR(100),
         delivery_location VARCHAR(255),
+        status VARCHAR(50) DEFAULT 'Available',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`;
 
     db.query(createGadgetsTable, (createErr) => {
         if (createErr) {
-            console.error('Could not ensure Gadgets table exists:', createErr);
+            console.error('❌ Could not ensure Gadgets table exists:', createErr.message);
             return;
         }
-        console.log('Gadgets table is ready.');
+        console.log('✅ Gadgets table is ready.');
+
+        db.query('SELECT COUNT(*) AS cnt FROM Gadgets', (countErr, countResult) => {
+            if (countErr) {
+                console.error('❌ Could not count gadgets:', countErr.message);
+                return;
+            }
+
+            const gadgetCount = countResult[0].cnt || 0;
+            if (gadgetCount === 0) {
+                const insertSamples = `INSERT INTO Gadgets
+                    (name, category, daily_rate, deposit_amount, image_url, description, owner_name, owner_email, owner_phone, owner_contact, delivery_location, status)
+                    VALUES
+                    (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?),
+                    (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?),
+                    (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?),
+                    (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+
+                const sampleValues = [
+                    'Scientific Calculator', 'Calculators', 50.00, 200.00,
+                    'https://images.unsplash.com/photo-1512446733611-9099a758e1d7?auto=format&fit=crop&w=800&q=80',
+                    'Reliable scientific calculator for campus exams and projects.',
+                    'Student', '', '', '', 'Campus', 'Available',
+                    'Arduino Uno Kit', 'Electronics', 100.00, 250.00,
+                    'https://images.unsplash.com/photo-1518779578993-ec3579fee39f?auto=format&fit=crop&w=800&q=80',
+                    'Complete Arduino starter kit for electronics and robotics.',
+                    'Student', '', '', '', 'Campus', 'Available',
+                    'DSLR Camera', 'Photography', 300.00, 500.00,
+                    'https://images.unsplash.com/photo-1519183071298-a2962be54a10?auto=format&fit=crop&w=800&q=80',
+                    'Mirrorless DSLR camera perfect for high-quality photo shoots.',
+                    'Student', '', '', '', 'Campus', 'Available',
+                    'Laptop', 'Electronic', 200.00, 300.00,
+                    'https://images.unsplash.com/photo-1517059224940-d4af9eec41e5?auto=format&fit=crop&w=800&q=80',
+                    'Fully functional laptop ideal for study and creative work.',
+                    'Student', '', '9916157360', '9916157360', 'IHC', 'Available'
+                ];
+
+                db.query(insertSamples, sampleValues, (insertErr, result) => {
+                    if (insertErr) {
+                        console.error('❌ Could not insert sample gadgets:', insertErr.message);
+                        return;
+                    }
+                    console.log(`✅ Inserted ${result.affectedRows} sample gadget records.`);
+                });
+            }
+        });
     });
 
-    db.query("ALTER TABLE Gadgets ADD COLUMN deposit_amount DECIMAL(10,2) DEFAULT 0", (alterErr) => {
-        if (alterErr && alterErr.code !== 'ER_DUP_FIELDNAME') {
-            console.error('Could not ensure deposit_amount column exists:', alterErr);
-        }
+    // Ensure schema columns exist
+    db.query("ALTER TABLE Gadgets ADD COLUMN deposit_amount DECIMAL(10,2) DEFAULT 0", (err) => {
+        if (err?.code !== 'ER_DUP_FIELDNAME') console.error(err?.message);
     });
 
-    db.query("ALTER TABLE Gadgets ADD COLUMN owner_email VARCHAR(100)", (alterErr) => {
-        if (alterErr && alterErr.code !== 'ER_DUP_FIELDNAME') {
-            console.error('Could not ensure owner_email column exists:', alterErr);
-        }
+    db.query("ALTER TABLE Gadgets ADD COLUMN owner_email VARCHAR(100)", (err) => {
+        if (err?.code !== 'ER_DUP_FIELDNAME') console.error(err?.message);
     });
 
-    db.query("ALTER TABLE Gadgets ADD COLUMN owner_phone VARCHAR(100)", (alterErr) => {
-        if (alterErr && alterErr.code !== 'ER_DUP_FIELDNAME') {
-            console.error('Could not ensure owner_phone column exists:', alterErr);
-        }
+    db.query("ALTER TABLE Gadgets ADD COLUMN owner_phone VARCHAR(100)", (err) => {
+        if (err?.code !== 'ER_DUP_FIELDNAME') console.error(err?.message);
     });
 
-    db.query("ALTER TABLE Gadgets MODIFY COLUMN image_url LONGTEXT", (alterErr) => {
-        if (alterErr) {
-            console.error('Could not modify image_url to LONGTEXT:', alterErr);
-        }
+    db.query("ALTER TABLE Gadgets MODIFY COLUMN image_url LONGTEXT", (err) => {
+        if (err) console.error(err.message);
     });
 
-    db.query("ALTER TABLE Gadgets MODIFY COLUMN description LONGTEXT", (alterErr) => {
-        if (alterErr) {
-            console.error('Could not modify description to LONGTEXT:', alterErr);
-        }
+    db.query("ALTER TABLE Gadgets MODIFY COLUMN description LONGTEXT", (err) => {
+        if (err) console.error(err.message);
+    });
+
+    db.query("ALTER TABLE Gadgets MODIFY COLUMN owner_contact VARCHAR(100) DEFAULT NULL", (err) => {
+        if (err) console.error(err.message);
+    });
+
+    db.query("ALTER TABLE Gadgets ADD COLUMN status VARCHAR(50) DEFAULT 'Available'", (err) => {
+        if (err?.code !== 'ER_DUP_FIELDNAME') console.error(err?.message);
     });
 });
 
@@ -161,11 +220,10 @@ app.delete('/api/gadgets/:id', (req, res) => {
         const dbOwnerPhone = (results[0].owner_phone || '').trim().toLowerCase();
         const dbOwnerName = (results[0].owner_name || '').trim().toLowerCase();
         const hasOwner = Boolean(dbOwnerContact || dbOwnerEmail || dbOwnerPhone || dbOwnerName);
-        const isOwner = ownerContact
-            ? [dbOwnerContact, dbOwnerEmail, dbOwnerPhone].includes(ownerContact)
-            : ownerName
-                ? dbOwnerName === ownerName
-                : false;
+
+        const isOwnerByContact = ownerContact ? [dbOwnerContact, dbOwnerEmail, dbOwnerPhone].includes(ownerContact) : false;
+        const isOwnerByName = ownerName ? dbOwnerName === ownerName : false;
+        const isOwner = isOwnerByContact || isOwnerByName;
 
         if (!isOwner && !(forceDelete && !hasOwner)) {
             return res.status(403).json({ error: "Unauthorized: only the owner can delete this gadget." });

@@ -74,7 +74,8 @@
                             <p id="hero-summary" class="mt-5 max-w-xl text-slate-300">Discover reliable student gear, post your own listing, and manage rentals with built-in reminders and deposits.</p>
                             <div class="mt-8 flex flex-col sm:flex-row gap-3">
                                 <button onclick="toggleModal('add-modal')" class="inline-flex items-center justify-center rounded-3xl bg-sky-500 px-7 py-4 text-sm font-black text-white shadow-lg shadow-sky-500/20 hover:bg-sky-400 transition">Post Your Gadget</button>
-                                <button onclick="switchView('reminder')" class="inline-flex items-center justify-center rounded-3xl border border-slate-600 bg-slate-900/80 px-7 py-4 text-sm font-bold text-slate-200 hover:border-slate-400 transition">View Return Tracker</button>
+                <button onclick="fetchGadgets()" class="inline-flex items-center justify-center rounded-3xl border border-slate-600 bg-slate-900/80 px-7 py-4 text-sm font-bold text-slate-200 hover:border-slate-400 transition">Refresh Listings</button>
+                <button onclick="switchView('reminder')" class="inline-flex items-center justify-center rounded-3xl border border-slate-600 bg-slate-900/80 px-7 py-4 text-sm font-bold text-slate-200 hover:border-slate-400 transition">View Return Tracker</button>
                             </div>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
@@ -108,14 +109,21 @@
                 <h2 class="text-3xl font-black mb-6">Shopping Cart</h2>
                 <div id="cart-list" class="space-y-4 mb-8"></div>
                 <div id="cart-summary" class="hidden bg-white p-8 rounded-[2.5rem] border shadow-lg">
-                    <div class="flex justify-between items-end mb-6">
-                        <div>
-                            <p class="text-xs font-bold text-slate-400 uppercase">Total + Deposits</p>
-                            <p id="cart-total" class="text-4xl font-black text-blue-600">₹0</p>
+                    <div class="grid gap-4 mb-6 md:grid-cols-3">
+                        <div class="bg-slate-950 text-white p-5 rounded-3xl shadow-lg border border-slate-200/10">
+                            <p class="text-[10px] uppercase tracking-[0.28em] text-slate-400 mb-2">Rent subtotal</p>
+                            <p id="cart-rent-total" class="text-3xl font-black">₹0</p>
                         </div>
-                        <p class="text-[10px] text-slate-400 max-w-[120px] text-right italic">Deposits are 100% refundable after return.</p>
+                        <div class="bg-slate-950 text-white p-5 rounded-3xl shadow-lg border border-slate-200/10">
+                            <p class="text-[10px] uppercase tracking-[0.28em] text-slate-400 mb-2">Deposits held</p>
+                            <p id="cart-deposit-total" class="text-3xl font-black">₹0</p>
+                        </div>
+                        <div class="bg-slate-950 text-white p-5 rounded-3xl shadow-lg border border-slate-200/10">
+                            <p class="text-[10px] uppercase tracking-[0.28em] text-slate-400 mb-2">Total payment</p>
+                            <p id="cart-total" class="text-3xl font-black text-blue-600">₹0</p>
+                        </div>
                     </div>
-                    <button onclick="confirmBooking()" class="w-full bg-slate-900 text-white py-5 rounded-2xl font-black text-lg">Confirm & Set Reminders</button>
+                    <button onclick="confirmBooking()" class="w-full bg-slate-900 text-white py-5 rounded-2xl font-black text-lg hover:bg-slate-800 transition">Confirm & Set Reminders</button>
                 </div>
             </section>
 
@@ -127,16 +135,24 @@
 
             <section id="section-refund" class="view-section">
                 <h2 class="text-3xl font-black mb-6">Security Refunds</h2>
-                <div class="bg-blue-600 p-8 rounded-[2.5rem] text-white shadow-xl shadow-blue-100 mb-6">
-                    <p class="text-xs font-bold opacity-70 uppercase tracking-widest">In-Process Balance</p>
-                    <p class="text-5xl font-black">₹1,500</p>
-                </div>
-                <div class="space-y-3" id="refund-list">
-                    <div class="bg-white p-4 rounded-2xl flex justify-between items-center border">
-                        <span class="text-sm font-bold">DSLR Camera Deposit</span>
-                        <span class="text-blue-600 font-black text-xs bg-blue-50 px-3 py-1 rounded-full">Pending Return</span>
+                <div class="grid gap-4 mb-6 md:grid-cols-3">
+                    <div class="bg-slate-950 p-6 rounded-[2.5rem] border border-slate-700 shadow-2xl">
+                        <p class="text-xs uppercase tracking-[0.35em] text-sky-300 font-black mb-2">Refund balance</p>
+                        <p id="refund-total-amount" class="text-5xl font-black text-white">₹0</p>
+                        <p class="text-slate-400 mt-2 text-sm">Refund amount available after return completion.</p>
+                    </div>
+                    <div class="bg-slate-950 p-6 rounded-[2.5rem] border border-slate-700 shadow-2xl">
+                        <p class="text-xs uppercase tracking-[0.35em] text-sky-300 font-black mb-2">Returned items</p>
+                        <p id="refund-count" class="text-5xl font-black text-white">0</p>
+                        <p class="text-slate-400 mt-2 text-sm">Total completed returns.</p>
+                    </div>
+                    <div class="bg-slate-950 p-6 rounded-[2.5rem] border border-slate-700 shadow-2xl">
+                        <p class="text-xs uppercase tracking-[0.35em] text-sky-300 font-black mb-2">Pending refund</p>
+                        <p id="refund-pending-count" class="text-5xl font-black text-white">0</p>
+                        <p class="text-slate-400 mt-2 text-sm">Refund entries waiting for processing.</p>
                     </div>
                 </div>
+                <div id="refund-list" class="space-y-4"></div>
             </section>
 
             <section id="section-profile" class="view-section">
@@ -227,7 +243,23 @@
                     <input id="new-owner-email" type="email" placeholder="Owner Email" class="p-4 bg-slate-900 text-slate-100 placeholder:text-slate-500 rounded-2xl border border-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
                     <input id="new-owner-phone" type="tel" placeholder="Owner Phone" class="p-4 bg-slate-900 text-slate-100 placeholder:text-slate-500 rounded-2xl border border-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
                 </div>
-                <input id="new-img" type="text" placeholder="Image URL" class="w-full p-4 bg-slate-900 text-slate-100 placeholder:text-slate-500 rounded-2xl border border-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
+                <div class="space-y-3">
+                    <label class="text-slate-300 text-sm font-semibold">Gadget Image</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button type="button" onclick="document.getElementById('file-input').click()" class="p-3 bg-slate-800 hover:bg-slate-700 text-white rounded-2xl border border-slate-600 font-bold transition flex items-center justify-center gap-2">
+                            <i data-lucide="upload"></i> From Storage
+                        </button>
+                        <button type="button" onclick="startCamera()" class="p-3 bg-slate-800 hover:bg-slate-700 text-white rounded-2xl border border-slate-600 font-bold transition flex items-center justify-center gap-2">
+                            <i data-lucide="camera"></i> Take Photo
+                        </button>
+                    </div>
+                    <input type="file" id="file-input" accept="image/*" class="hidden" onchange="handleFileSelect(event)">
+                    <div id="image-preview" class="hidden">
+                        <img id="preview-img" src="" class="w-full h-32 object-cover rounded-2xl border border-slate-600">
+                        <button type="button" onclick="clearImage()" class="mt-2 w-full text-red-500 font-bold text-sm hover:text-red-400">Clear Image</button>
+                    </div>
+                    <input id="new-img" type="hidden" value="">
+                </div>
                 <textarea id="new-desc" placeholder="Product details..." class="w-full p-4 bg-slate-900 text-slate-100 placeholder:text-slate-500 rounded-2xl h-28 border border-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"></textarea>
             </div>
             <button type="button" onclick="submitNewGadget()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold mt-8 hover:bg-blue-500 transition">Post Listing</button>
@@ -235,10 +267,103 @@
         </div>
     </div>
 
-    <script>
+    <div id="camera-modal" class="hidden fixed inset-0 z-[250] bg-black/90 flex items-center justify-center p-4">
+        <div class="bg-slate-950 text-slate-100 w-full max-w-md rounded-[3rem] p-8 shadow-2xl border border-slate-700">
+            <h2 class="text-3xl font-black mb-4 text-white text-center">Take Photo</h2>
+            <video id="camera-video" autoplay playsinline class="w-full h-64 bg-black rounded-2xl border border-slate-600 object-cover mb-4"></video>
+            <canvas id="camera-canvas" class="hidden"></canvas>
+            <div class="flex gap-3">
+                <button type="button" onclick="capturePhoto()" class="flex-1 bg-blue-600 text-white py-3 rounded-2xl font-bold hover:bg-blue-500 transition flex items-center justify-center gap-2">
+                    <i data-lucide="camera"></i> Capture
+                </button>
+                <button type="button" onclick="closeCamera()" class="flex-1 bg-red-600 text-white py-3 rounded-2xl font-bold hover:bg-red-500 transition">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script id="image-functions">
         const API = 'http://localhost:3000/api';
         const fallbackImage = 'https://images.unsplash.com/photo-1517059224940-d4af9eec41e5?auto=format&fit=crop&w=800&q=80';
         let gadgets = [], cart = [], activeUser = null, activeGadget = null;
+
+        // --- IMAGE HANDLING FUNCTIONS ---
+        async function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (!file.type.startsWith('image/')) {
+                alert('Please select an image file');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const dataUri = e.target.result;
+                document.getElementById('new-img').value = dataUri;
+                displayImagePreview(dataUri);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function startCamera() {
+            const video = document.getElementById('camera-video');
+            const modal = document.getElementById('camera-modal');
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+                });
+                video.srcObject = stream;
+                modal.classList.remove('hidden');
+                window.cameraStream = stream;
+            } catch (err) {
+                alert('Camera access denied or not available. Please use file upload instead.');
+                console.error('Camera error:', err);
+            }
+        }
+
+        function capturePhoto() {
+            const video = document.getElementById('camera-video');
+            const canvas = document.getElementById('camera-canvas');
+            const ctx = canvas.getContext('2d');
+
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            ctx.drawImage(video, 0, 0);
+
+            const dataUri = canvas.toDataURL('image/jpeg', 0.8);
+            document.getElementById('new-img').value = dataUri;
+            displayImagePreview(dataUri);
+            closeCamera();
+        }
+
+        function closeCamera() {
+            const modal = document.getElementById('camera-modal');
+            const video = document.getElementById('camera-video');
+
+            if (window.cameraStream) {
+                window.cameraStream.getTracks().forEach(track => track.stop());
+                window.cameraStream = null;
+            }
+
+            video.srcObject = null;
+            modal.classList.add('hidden');
+        }
+
+        function displayImagePreview(dataUri) {
+            const preview = document.getElementById('image-preview');
+            const previewImg = document.getElementById('preview-img');
+            previewImg.src = dataUri;
+            preview.classList.remove('hidden');
+        }
+
+        function clearImage() {
+            document.getElementById('new-img').value = '';
+            document.getElementById('image-preview').classList.add('hidden');
+            document.getElementById('file-input').value = '';
+        }
 
         // --- SESSION HANDLING ---
         const AUTH_MODES = { LOGIN: 'login', REGISTER: 'register' };
@@ -360,6 +485,7 @@
                 fetchGadgets();
                 renderReminders();
                 renderCart();
+                renderRefunds();
                 lucide.createIcons();
             } catch (err) {
                 console.error('Init error:', err);
@@ -391,10 +517,7 @@ async function fetchGadgets() {
         const res = await fetch(`${API}/gadgets`);
         if (!res.ok) throw new Error(`API error: ${res.status}`);
         const rawData = await res.json();
-        const filteredData = rawData.filter(g => {
-            const name = (g.name || '').toString().toLowerCase();
-            return name !== 'lab dress' && !name.includes('lab dress');
-        });
+        const filteredData = rawData; // use exact DB rows from /api/gadgets without hiding any listings
         const fallbackImage = 'https://images.unsplash.com/photo-1517059224940-d4af9eec41e5?auto=format&fit=crop&w=800&q=80';
         const defaultGadgetImages = {
             'canon eos dslr': 'https://images.unsplash.com/photo-1519183071298-a2962be54a10?auto=format&fit=crop&w=800&q=80',
@@ -411,20 +534,17 @@ async function fetchGadgets() {
         const rawGadgetImage = g.image_url || g.image || '';
         const imageUrl = normalizeImageUrl(rawGadgetImage) || defaultGadgetImages[(g.name || '').toLowerCase()] || fallbackImage;
         
-        // Assign random owner if no owner
-        let ownerName = g.owner_name || g.ownerName || 'Unknown';
+        // Use DB owner details when available, otherwise keep unknown values
+        let ownerName = g.owner_name || g.ownerName || '';
         let ownerEmail = g.owner_email || g.ownerEmail || '';
         let ownerPhone = g.owner_phone || g.ownerPhone || '';
         let ownerContact = g.owner_contact || ownerEmail || ownerPhone || '';
         
-        if (ownerName === 'Unknown' || (!ownerEmail && !ownerPhone && !ownerContact)) {
-            const randomOwner = RentalSystem.getRandomOwner();
-            ownerName = randomOwner.name;
-            ownerPhone = randomOwner.phone;
-            ownerContact = ownerPhone;
+        if (!ownerName && !ownerEmail && !ownerPhone && !ownerContact) {
+            ownerName = 'Unknown';
         }
         
-        return {
+        const gadget = {
             ...g,
             image_url: imageUrl,
             daily_rate: dailyRate,
@@ -434,6 +554,15 @@ async function fetchGadgets() {
             owner_phone: ownerPhone,
             owner_contact: ownerContact
         };
+
+        if (activeUser && isOwner(gadget)) {
+            const userName = localStorage.getItem(`name_${activeUser}`);
+            if (userName && userName !== 'Student') {
+                gadget.owner_name = userName;
+            }
+        }
+
+        return gadget;
     });
 
     const uniqueCategories = [...new Set(gadgets.map(g => g.category || 'Misc'))];
@@ -449,47 +578,49 @@ async function fetchGadgets() {
         
         const isRented = RentalSystem.isGadgetRented(g.gadget_id);
         const rentalInfo = RentalSystem.getRentalInfo(g.gadget_id);
-        const rentalBadge = isRented ? `
+        const statusLabel = g.status ? g.status.toString() : (isRented ? 'Rented' : 'Available');
+        const ownerDisplay = g.owner_name || 'Unknown owner';
+        const ownerContactDisplay = g.owner_contact || g.owner_phone || g.owner_email || 'No contact';
+        const rentalBadge = statusLabel.toLowerCase() === 'rented' || isRented ? `
             <div class="absolute top-4 right-4 bg-red-600 text-white px-3 py-2 rounded-full text-[10px] font-black shadow-md flex items-center gap-1">
                 <i data-lucide="lock" class="w-3 h-3"></i> RENTED
             </div>
         ` : `
             <div class="absolute top-4 right-4 bg-green-600 text-white px-3 py-1 rounded-full text-[10px] font-black shadow-sm">
-                AVAILABLE
+                ${statusLabel.toUpperCase()}
             </div>
         `;
         
-        const ownerDeleteBtn = isOwner(g) ? `
-            <button onclick="deleteGadget(${g.gadget_id})" class="mt-3 w-full bg-red-500 text-white py-3 rounded-2xl font-bold hover:bg-red-600 transition">Delete</button>
-        ` : '';
-        
-        const disabledOverlay = isRented ? `
+        const disabledOverlay = statusLabel.toLowerCase() === 'rented' || isRented ? `
             <div class="absolute inset-0 bg-black/40 rounded-[2rem] flex items-center justify-center">
                 <div class="bg-black/80 px-3 py-1 rounded-full text-[10px] text-white font-black">UNAVAILABLE</div>
             </div>
         ` : '';
 
         return `
-        <div class="bg-slate-950 p-4 rounded-[2.5rem] shadow-2xl border border-slate-800 flex flex-col group hover:shadow-xl transition-all duration-300 ${isRented ? 'opacity-75 cursor-not-allowed' : ''}">
+        <div class="bg-slate-950 p-4 rounded-[2.5rem] shadow-2xl border border-slate-800 flex flex-col group hover:shadow-xl transition-all duration-300 ${(statusLabel.toLowerCase() === 'rented' || isRented) ? 'opacity-75 cursor-not-allowed' : ''}">
             <div class="relative overflow-hidden rounded-[2rem]">
-                <img src="${g.image_url}" onclick="${isRented ? '' : `openProduct(${g.gadget_id})`}" 
+                <img src="${g.image_url}" onclick="${(statusLabel.toLowerCase() === 'rented' || isRented) ? '' : `openProduct(${g.gadget_id})`}" 
                      onerror="this.onerror=null;this.src='${fallbackImage}';"
-                     class="w-full h-48 object-cover ${isRented ? '' : 'cursor-pointer group-hover:scale-105 transition-transform duration-500'}">
+                     class="w-full h-48 object-cover ${(statusLabel.toLowerCase() === 'rented' || isRented) ? '' : 'cursor-pointer group-hover:scale-105 transition-transform duration-500'}">
                 ${rentalBadge}
                 ${disabledOverlay}
                 ${ownerBadge}
             </div>
-            <div class="p-4 flex justify-between items-center">
-                <div>
+            <div class="p-4">
+                <div class="flex justify-between items-center mb-2">
                     <h4 class="font-black text-lg truncate w-32 text-white">${g.name}</h4>
-                    <p class="text-sky-300 font-black">₹${g.daily_rate}<span class="text-[10px] text-slate-400 font-normal"> /day</span></p>
+                    <span class="text-[10px] uppercase tracking-[0.25em] text-slate-400 font-bold">${statusLabel}</span>
+                </div>
+                <p class="text-sky-300 font-black">₹${g.daily_rate}<span class="text-[10px] text-slate-400 font-normal"> /day</span></p>
+                <p class="text-slate-400 text-xs mt-2">Owner: <span class="text-white">${ownerDisplay}</span></p>
+                <p class="text-slate-400 text-xs">Contact: <span class="text-white">${ownerContactDisplay}</span></p>
                 </div>
                 <div class="text-right">
                     <p class="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">Security Deposit</p>
                     <p class="font-black text-slate-100 text-lg">₹${g.deposit_amount}</p>
                 </div>
             </div>
-            ${ownerDeleteBtn}
         </div>
     `;
     }).join('');
@@ -515,13 +646,10 @@ async function submitNewGadget() {
     const autoDeposit = depositField ? parseFloat(depositField) : (rate * 5);
 
     if (!name || !rate || !image || !ownerPhone) {
-        return alert('Please provide a name, rent, image URL, and owner phone number.');
+        return alert('Please provide a name, rent, gadget image, and owner phone number.');
     }
 
-    if (!image.startsWith('http') && !image.startsWith('data:')) {
-        return alert('Please provide a valid image URL or data URI for the gadget image.');
-    }
-
+    const ownerName = localStorage.getItem(`name_${activeUser}`) || activeUser?.split('@')[0] || 'Student';
     const payload = {
         name,
         category,
@@ -529,7 +657,7 @@ async function submitNewGadget() {
         deposit_amount: autoDeposit,
         image,
         desc,
-        owner_name: localStorage.getItem(`name_${activeUser}`) || 'Student',
+        owner_name: ownerName,
         owner_email: ownerEmail,
         owner_phone: ownerPhone,
         owner_contact: ownerEmail || ownerPhone,
@@ -553,9 +681,9 @@ async function submitNewGadget() {
     document.getElementById('new-deposit').value = '';
     document.getElementById('new-owner-email').value = '';
     document.getElementById('new-owner-phone').value = '';
-    document.getElementById('new-img').value = '';
     document.getElementById('new-desc').value = '';
     document.getElementById('new-location').value = '';
+    clearImage();
 
     toggleModal('add-modal');
     fetchGadgets();
@@ -572,13 +700,19 @@ async function submitNewGadget() {
                 item?.owner_email,
                 item?.owner_phone,
                 item?.ownerEmail,
-                item?.ownerPhone
+                item?.ownerPhone,
+                item?.owner_name,
+                item?.ownerName
             ].filter(Boolean).map(normalizeEmail);
             const ownerName = item?.owner_name || item?.ownerName || '';
             const userName = localStorage.getItem(`name_${activeUser}`) || '';
             const userEmail = normalizeEmail(activeUser);
+            const normalizedUserName = normalizeEmail(userName);
+            const normalizedOwnerName = normalizeEmail(ownerName);
+
             return ownerValues.includes(userEmail)
-                || (ownerValues.length === 0 && normalizeEmail(ownerName) === normalizeEmail(userName));
+                || ownerValues.includes(normalizedUserName)
+                || (normalizedOwnerName && normalizedOwnerName === normalizedUserName);
         }
 
         function canDelete(item) {
@@ -590,6 +724,12 @@ async function submitNewGadget() {
             const isOwnerListing = isOwner(activeGadget);
             const isRented = RentalSystem.isGadgetRented(activeGadget.gadget_id);
             const rentalInfo = RentalSystem.getRentalInfo(activeGadget.gadget_id);
+            const displayedOwnerName = isOwnerListing
+                ? (localStorage.getItem(`name_${activeUser}`) || activeGadget.owner_name || 'Unknown')
+                : (activeGadget.owner_name || 'Unknown');
+            const displayedOwnerEmail = activeGadget.owner_email || 'Not provided';
+            const displayedOwnerPhone = activeGadget.owner_phone || 'Not provided';
+            const displayedOwnerAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(displayedOwnerName)}`;
             
             let actionButton = '';
             if (isOwnerListing) {
@@ -613,6 +753,11 @@ async function submitNewGadget() {
             const ownerNote = isOwnerListing ? `
                 <div class="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-300 p-3 rounded-2xl mb-4">
                     <p class="text-sm text-green-800 font-bold">✓ You are the owner of this gadget listing.</p>
+                </div>
+            ` : '';
+            const ownerActionArea = isOwnerListing ? `
+                <div class="mt-4 mb-4">
+                    <button onclick="deleteGadget(${activeGadget.gadget_id})" class="w-full bg-red-600 text-white py-4 rounded-2xl font-black shadow-lg shadow-red-500/25 hover:bg-red-700 transition">Delete this listing</button>
                 </div>
             ` : '';
             
@@ -661,28 +806,33 @@ async function submitNewGadget() {
                 </div>
                 <div class="bg-gradient-to-r from-slate-800 to-slate-700 p-5 rounded-[2rem] mb-6 shadow-lg border border-slate-600">
                     <div class="flex items-center gap-3 mb-4">
-                        <img src="https://ui-avatars.com/api/?name=${activeGadget.owner_name}" class="w-12 h-12 rounded-full border-2 border-blue-400 shadow-md">
+                        <img src="${displayedOwnerAvatar}" class="w-12 h-12 rounded-full border-2 border-blue-400 shadow-md">
                         <div>
                             <p class="text-[11px] font-bold text-blue-300 uppercase tracking-wider">Owner</p>
-                            <p class="font-black text-white text-sm">${activeGadget.owner_name}</p>
+                            <p class="font-black text-white text-sm">${displayedOwnerName}</p>
                         </div>
                     </div>
                     <div class="grid gap-3 text-sm text-slate-300">
                         <div class="flex items-center justify-between">
                             <span class="font-semibold">Email</span>
-                            <span>${activeGadget.owner_email || 'Not provided'}</span>
+                            <span>${displayedOwnerEmail}</span>
                         </div>
                         <div class="flex items-center justify-between">
                             <span class="font-semibold">Phone</span>
-                            <span>${activeGadget.owner_phone || 'Not provided'}</span>
+                            <span>${displayedOwnerPhone}</span>
                         </div>
                         <div class="flex items-center justify-between">
                             <span class="font-semibold">Location</span>
                             <span>${activeGadget.delivery_location || 'Campus'}</span>
                         </div>
+                        <div class="flex items-center justify-between">
+                            <span class="font-semibold">Status</span>
+                            <span class="text-${activeGadget.status?.toLowerCase() === 'rented' ? 'red-300' : 'green-300'} font-black">${activeGadget.status || (isRented ? 'Rented' : 'Available')}</span>
+                        </div>
                     </div>
                 </div>
                 ${ownerNote}
+                ${ownerActionArea}
                 ${durationSelector}
                 <div class="mb-6">
                     <label class="text-xs font-black text-blue-300 uppercase mb-3 block tracking-wider">📅 Select Pick-up Date</label>
@@ -740,7 +890,14 @@ async function submitNewGadget() {
             const days = parseInt(document.getElementById('rental-days').value) || 3;
             if(!date) return alert("Select a date!");
             if(!days || days < 1) return alert("Select rental days!");
-            cart.push({ ...activeGadget, pickup_date: date, rental_days: days, total_cost: RentalSystem.calculateTotalCost(activeGadget.daily_rate, activeGadget.deposit_amount, days) });
+            cart.push({
+                ...activeGadget,
+                pickup_date: date,
+                rental_days: days,
+                total_cost: RentalSystem.calculateTotalCost(activeGadget.daily_rate, activeGadget.deposit_amount, days),
+                rent_cost: activeGadget.daily_rate * days,
+                deposit_cost: activeGadget.deposit_amount
+            });
             saveUserCart();
             toggleModal('detail-modal');
             renderCart();
@@ -764,23 +921,44 @@ async function submitNewGadget() {
             }
             document.getElementById('cart-summary').classList.remove('hidden');
             let total = 0;
+            let rentTotal = 0;
+            let depositTotal = 0;
             list.innerHTML = cart.map((item, index) => {
-                const itemCost = item.total_cost || RentalSystem.calculateTotalCost(item.daily_rate, item.deposit_amount, item.rental_days || 3);
+                const rentCost = item.rent_cost || (item.daily_rate * (item.rental_days || 3));
+                const depositCost = item.deposit_cost || item.deposit_amount || 0;
+                const itemCost = item.total_cost || RentalSystem.calculateTotalCost(item.daily_rate, depositCost, item.rental_days || 3);
                 total += itemCost;
+                rentTotal += rentCost;
+                depositTotal += depositCost;
                 return `
-                    <div class="bg-white p-4 rounded-[2rem] flex gap-4 border border-slate-100 shadow-sm">
-                        <img src="${item.image_url}" onerror="this.onerror=null;this.src='${fallbackImage}';" class="w-16 h-16 rounded-xl object-cover">
+                    <div class="bg-white p-4 rounded-[2rem] flex flex-col gap-3 border border-slate-100 shadow-sm md:flex-row md:items-center">
+                        <img src="${item.image_url}" onerror="this.onerror=null;this.src='${fallbackImage}';" class="w-full h-44 md:w-28 md:h-28 rounded-2xl object-cover">
                         <div class="flex-1">
-                            <h4 class="font-bold text-sm">${item.name}</h4>
-                            <p class="text-[10px] text-blue-600 font-bold uppercase">Pick-up: ${item.pickup_date}</p>
-                            <p class="text-[10px] text-blue-600 font-bold uppercase">Duration: ${item.rental_days || 3} day${(item.rental_days || 3) > 1 ? 's' : ''}</p>
-                            <p class="text-[10px] text-green-600 font-bold">₹${itemCost}</p>
+                            <div class="flex items-start justify-between gap-3">
+                                <div>
+                                    <h4 class="font-black text-base text-slate-900">${item.name}</h4>
+                                    <p class="text-[10px] text-slate-500 uppercase tracking-[0.3em] mt-2">Pickup: ${item.pickup_date}</p>
+                                    <p class="text-[10px] text-slate-500 uppercase tracking-[0.3em]">Duration: ${item.rental_days || 3} day${(item.rental_days || 3) > 1 ? 's' : ''}</p>
+                                </div>
+                                <button onclick="removeFromCart(${index})" class="text-red-500 hover:text-red-600 transition"><i data-lucide="trash-2"></i></button>
+                            </div>
+                            <div class="grid grid-cols-2 gap-3 mt-4 text-sm text-slate-600">
+                                <div class="bg-slate-100 p-3 rounded-3xl">
+                                    <p class="text-[10px] uppercase tracking-[0.25em] text-slate-400">Rent</p>
+                                    <p class="font-black text-slate-900">₹${rentCost}</p>
+                                </div>
+                                <div class="bg-slate-100 p-3 rounded-3xl">
+                                    <p class="text-[10px] uppercase tracking-[0.25em] text-slate-400">Deposit</p>
+                                    <p class="font-black text-slate-900">₹${depositCost}</p>
+                                </div>
+                            </div>
                         </div>
-                        <button onclick="removeFromCart(${index})" class="text-red-400"><i data-lucide="trash-2"></i></button>
                     </div>
                 `;
             }).join('');
             document.getElementById('cart-total').innerText = `₹${total}`;
+            document.getElementById('cart-rent-total').innerText = `₹${rentTotal}`;
+            document.getElementById('cart-deposit-total').innerText = `₹${depositTotal}`;
             saveUserCart();
             lucide.createIcons();
         }
@@ -808,7 +986,8 @@ async function submitNewGadget() {
                     pickupDate: item.pickup_date,
                     rentalDays: item.rental_days || 3,
                     gadgetId: item.gadget_id,
-                    totalCost: item.total_cost
+                    totalCost: item.total_cost,
+                    depositAmount: item.deposit_cost || item.deposit_amount || 0
                 };
                 
                 const existing = JSON.parse(localStorage.getItem(`reminders_${activeUser}`)) || [];
@@ -867,15 +1046,78 @@ async function submitNewGadget() {
             }).join('');
             lucide.createIcons();
         }
+
+        function renderRefunds() {
+            const data = JSON.parse(localStorage.getItem(`refunds_${activeUser}`)) || [];
+            const list = document.getElementById('refund-list');
+            const totalRefund = data.reduce((sum, item) => sum + (item.refundAmount || 0), 0);
+            const pendingCount = data.filter(item => item.status && item.status.toLowerCase().includes('pending')).length;
+
+            document.getElementById('refund-total-amount').innerText = `₹${totalRefund}`;
+            document.getElementById('refund-count').innerText = data.length;
+            document.getElementById('refund-pending-count').innerText = pendingCount;
+
+            if (data.length === 0) {
+                list.innerHTML = `<p class="text-center py-10 text-slate-400 italic">No refunds processed yet.</p>`;
+                return;
+            }
+
+            list.innerHTML = data.map(item => `
+                <div class="bg-slate-950 border border-slate-700 p-5 rounded-[2.5rem] shadow-2xl flex flex-col gap-4">
+                    <div class="flex items-center justify-between gap-4">
+                        <div>
+                            <p class="text-xs uppercase tracking-[0.35em] text-sky-300 font-black mb-2">${item.name}</p>
+                            <p class="text-sm text-slate-400">Returned on ${item.returnedOn}</p>
+                        </div>
+                        <span class="text-xs font-black uppercase tracking-[0.25em] ${item.status.toLowerCase().includes('pending') ? 'text-yellow-400' : 'text-emerald-400'}">${item.status}</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4 text-sm text-slate-300">
+                        <div class="bg-slate-900 p-4 rounded-3xl">
+                            <p class="text-[10px] uppercase tracking-[0.25em] text-slate-500">Deposit refunded</p>
+                            <p class="font-black text-white text-lg">₹${item.refundAmount}</p>
+                        </div>
+                        <div class="bg-slate-900 p-4 rounded-3xl">
+                            <p class="text-[10px] uppercase tracking-[0.25em] text-slate-500">Total cost</p>
+                            <p class="font-black text-white text-lg">₹${item.totalCost}</p>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
         
         function markAsReturned(index) {
             if (!confirm('Mark this gadget as returned?')) return;
             const data = JSON.parse(localStorage.getItem(`reminders_${activeUser}`)) || [];
-            data.splice(index, 1);
+            const returned = data.splice(index, 1)[0];
             localStorage.setItem(`reminders_${activeUser}`, JSON.stringify(data));
+
+            const rentals = JSON.parse(localStorage.getItem('gadget_rentals') || '{}');
+            if (returned && returned.gadgetId && rentals[returned.gadgetId]) {
+                rentals[returned.gadgetId] = rentals[returned.gadgetId].map(rental => {
+                    if (rental.status === 'active' && rental.gadgetId === returned.gadgetId) {
+                        return { ...rental, status: 'returned', returnProcessedAt: new Date().toISOString() };
+                    }
+                    return rental;
+                });
+                localStorage.setItem('gadget_rentals', JSON.stringify(rentals));
+            }
+
+            const refunds = JSON.parse(localStorage.getItem(`refunds_${activeUser}`)) || [];
+            refunds.unshift({
+                name: returned.name,
+                gadgetId: returned.gadgetId,
+                returnedOn: new Date().toLocaleDateString('en-IN'),
+                refundAmount: returned.depositAmount || 0,
+                totalCost: returned.totalCost || 0,
+                status: 'Refund processed'
+            });
+            localStorage.setItem(`refunds_${activeUser}`, JSON.stringify(refunds));
+
             renderReminders();
+            renderRefunds();
             fetchGadgets();
-            alert('✅ Gadget marked as returned!');
+            alert('✅ Gadget marked as returned! Refund is reflected in Security Refunds.');
         }
 
         // --- NAVIGATION & PROFILE ---
